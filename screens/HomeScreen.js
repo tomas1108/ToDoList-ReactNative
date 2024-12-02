@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Button, TextInput, FlatList, StyleSheet } from "react-native";
 import { auth, db } from "../firebaseConfig";
 import { signOut } from "firebase/auth";
-import { collection, addDoc, getDocs } from "firebase/firestore"; // Import các phương thức Firestore
+import { collection, addDoc, getDocs } from "firebase/firestore"; // Các phương thức Firestore
 
 export default function HomeScreen({ navigation }) {
   const [newTodo, setNewTodo] = useState(""); // State để lưu input của người dùng
@@ -18,22 +18,25 @@ export default function HomeScreen({ navigation }) {
     if (newTodo.trim() === "") return; // Kiểm tra nếu input trống
 
     try {
-      // Thêm To-Do mới vào Firestore
-      await addDoc(collection(db, "todos"), {
-        task: newTodo,
-        createdAt: new Date(), // Thêm thời gian tạo để sắp xếp
-      });
-      setNewTodo(""); // Xóa input sau khi thêm thành công
-      fetchTodos(); // Lấy lại danh sách To-Do sau khi thêm
+      const user = auth.currentUser; // Lấy thông tin người dùng hiện tại
+      if (user) {
+        // Thêm To-Do mới vào Firestore trong collection của người dùng
+        await addDoc(collection(db, "users", user.uid, "todos"), {
+          task: newTodo,
+          createdAt: new Date(), // Thêm thời gian tạo để sắp xếp
+        });
+        setNewTodo(""); // Xóa input sau khi thêm thành công
+        fetchTodos(user.uid); // Lấy lại danh sách To-Do của người dùng
+      }
     } catch (error) {
       alert("Error adding todo: ", error.message);
     }
   };
 
-  // Lấy danh sách To-Do từ Firestore
-  const fetchTodos = async () => {
+  // Lấy danh sách To-Do của người dùng từ Firestore
+  const fetchTodos = async (uid) => {
     try {
-      const querySnapshot = await getDocs(collection(db, "todos"));
+      const querySnapshot = await getDocs(collection(db, "users", uid, "todos"));
       const todoList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -46,7 +49,10 @@ export default function HomeScreen({ navigation }) {
 
   // Fetch dữ liệu khi trang được tải
   useEffect(() => {
-    fetchTodos();
+    const user = auth.currentUser;
+    if (user) {
+      fetchTodos(user.uid); // Lấy danh sách To-Do của người dùng
+    }
   }, []);
 
   return (
