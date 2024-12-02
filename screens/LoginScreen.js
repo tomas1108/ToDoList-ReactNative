@@ -15,11 +15,9 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Logo and Title */}
       <Image source={require("../assets/icon.png")} style={styles.logo} />
       <Text style={styles.title}>Sign In</Text>
-
-      {/* Input fields */}
+   
       <TextInput
         placeholder="Email"
         value={email}
@@ -34,7 +32,6 @@ export default function LoginScreen({ navigation }) {
         secureTextEntry
       />
 
-      {/* Buttons */}
       <Button title="Login" onPress={handleLogin} />
       <Text onPress={() => navigation.navigate("Register")} style={styles.link}>
         Don't have an account? Register
