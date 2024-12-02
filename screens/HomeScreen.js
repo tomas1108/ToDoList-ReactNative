@@ -95,7 +95,9 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Today's Tasks</Text>
-      <Button title="Logout" onPress={handleLogout} />
+      <View style={styles.logoutWrapper}>
+        <Button style={styles.bt_log} title="Logout" onPress={handleLogout} />
+      </View>
 
       {/* Hiển thị danh sách To-Do */}
       <FlatList
@@ -137,6 +139,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
+ 
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
   input: {
     paddingVertical: 15,
@@ -171,4 +174,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   addText: {},
+
+  bt_log: {
+    backgroundColor: "#FF0000",
+    padding: 10,
+    borderRadius: 5,
+  },
+
+  // Đặt vị trí button logout ở góc trên cùng bên trái
+  logoutWrapper: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+  },
 });
