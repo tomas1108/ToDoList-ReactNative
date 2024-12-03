@@ -17,6 +17,7 @@ import {
   addDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   doc,
 } from "firebase/firestore";
 import Task from "../components/Task";
@@ -47,23 +48,21 @@ export default function HomeScreen({ navigation }) {
         fetchTodos(user.uid); // Lấy lại danh sách To-Do của người dùng
       }
     } catch (error) {
-      alert("Error adding todo: ", error.message);
+      alert("Error adding todo: " + error.message);
     }
   };
 
   // Lấy danh sách To-Do của người dùng từ Firestore
   const fetchTodos = async (uid) => {
     try {
-      const querySnapshot = await getDocs(
-        collection(db, "users", uid, "todos")
-      );
+      const querySnapshot = await getDocs(collection(db, "users", uid, "todos"));
       const todoList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setTodos(todoList); // Cập nhật danh sách todos
     } catch (error) {
-      alert("Error fetching todos: ", error.message);
+      alert("Error fetching todos: " + error.message);
     }
   };
 
@@ -80,7 +79,21 @@ export default function HomeScreen({ navigation }) {
         fetchTodos(user.uid); // Lấy lại danh sách To-Do đã cập nhật
       }
     } catch (error) {
-      alert("Error updating todo: ", error.message);
+      alert("Error updating todo: " + error.message);
+    }
+  };
+
+  // Xóa To-Do khỏi Firestore
+  const handleDeleteTodo = async (todoId) => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const todoRef = doc(db, "users", user.uid, "todos", todoId);
+        await deleteDoc(todoRef); // Xóa To-Do khỏi Firestore
+        fetchTodos(user.uid); // Lấy lại danh sách To-Do đã cập nhật
+      }
+    } catch (error) {
+      alert("Error deleting todo: " + error.message);
     }
   };
 
@@ -107,7 +120,8 @@ export default function HomeScreen({ navigation }) {
           <Task
             text={item.task}
             completed={item.completed}
-            onPress={() => handleToggleComplete(item.id, item.completed)} 
+            onPress={() => handleToggleComplete(item.id, item.completed)}
+            onDelete={() => handleDeleteTodo(item.id)} // Pass delete handler
           />
         )}
       />
@@ -131,6 +145,9 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 }
+
+// Update the Task component to accept an onDelete prop and display a delete button.
+
 
 const styles = StyleSheet.create({
   container: {
