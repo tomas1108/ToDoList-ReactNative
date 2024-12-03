@@ -146,7 +146,6 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-// Update the Task component to accept an onDelete prop and display a delete button.
 
 
 const styles = StyleSheet.create({
