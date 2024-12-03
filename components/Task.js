@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons'; // Thêm icon delete
+import { MaterialIcons } from '@expo/vector-icons'; // Thêm icon delete và edit
 
-const Task = ({ text, completed, onPress, onDelete }) => {
+const Task = ({ text, completed, onPress, onDelete, onEdit }) => {
   return (
     <View style={styles.item}>
       <TouchableOpacity style={styles.itemLeft} onPress={onPress}>
@@ -10,6 +10,10 @@ const Task = ({ text, completed, onPress, onDelete }) => {
         <Text style={[styles.itemText, completed && styles.completedText]}>{text}</Text>
       </TouchableOpacity>
       <View style={styles.rightSection}>
+        {/* Nút sửa */}
+        <TouchableOpacity onPress={onEdit} style={styles.editButton}>
+          <MaterialIcons name="edit" size={24} color="blue" />
+        </TouchableOpacity>
         {/* Nút xóa */}
         <TouchableOpacity onPress={onDelete}>
           <MaterialIcons name="delete" size={24} color="red" />
@@ -28,12 +32,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
-    width: '300px'
+    width: '300px',
   },
   itemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
   },
   square: {
     width: 24,
@@ -65,8 +69,12 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50', // Thay đổi màu viền khi hoàn thành
   },
   rightSection: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  editButton: {
+    marginLeft: 10,
   },
 });
 
