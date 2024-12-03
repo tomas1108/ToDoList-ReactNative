@@ -17,6 +17,7 @@ import {
   addDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   doc,
 } from "firebase/firestore";
 import Task from "../components/Task";
@@ -24,6 +25,7 @@ import Task from "../components/Task";
 export default function HomeScreen({ navigation }) {
   const [newTodo, setNewTodo] = useState(""); // State để lưu input của người dùng
   const [todos, setTodos] = useState([]); // State để lưu danh sách To-Do từ Firestore
+  const [editingTodoId, setEditingTodoId] = useState(null); // State để lưu ID của To-Do đang được chỉnh sửa
 
   // Đăng xuất
   const handleLogout = () => {
@@ -47,23 +49,21 @@ export default function HomeScreen({ navigation }) {
         fetchTodos(user.uid); // Lấy lại danh sách To-Do của người dùng
       }
     } catch (error) {
-      alert("Error adding todo: ", error.message);
+      alert("Error adding todo: " + error.message);
     }
   };
 
   // Lấy danh sách To-Do của người dùng từ Firestore
   const fetchTodos = async (uid) => {
     try {
-      const querySnapshot = await getDocs(
-        collection(db, "users", uid, "todos")
-      );
+      const querySnapshot = await getDocs(collection(db, "users", uid, "todos"));
       const todoList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setTodos(todoList); // Cập nhật danh sách todos
     } catch (error) {
-      alert("Error fetching todos: ", error.message);
+      alert("Error fetching todos: " + error.message);
     }
   };
 
@@ -80,7 +80,42 @@ export default function HomeScreen({ navigation }) {
         fetchTodos(user.uid); // Lấy lại danh sách To-Do đã cập nhật
       }
     } catch (error) {
-      alert("Error updating todo: ", error.message);
+      alert("Error updating todo: " + error.message);
+    }
+  };
+
+  // Xóa To-Do khỏi Firestore
+  const handleDeleteTodo = async (todoId) => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const todoRef = doc(db, "users", user.uid, "todos", todoId);
+        await deleteDoc(todoRef); // Xóa To-Do khỏi Firestore
+        fetchTodos(user.uid); // Lấy lại danh sách To-Do đã cập nhật
+      }
+    } catch (error) {
+      alert("Error deleting todo: " + error.message);
+    }
+  };
+
+  // Sửa To-Do
+  const handleEditTodo = async () => {
+    if (newTodo.trim() === "") return; // Kiểm tra nếu input trống
+
+    try {
+      const user = auth.currentUser;
+      if (user && editingTodoId) {
+        // Cập nhật To-Do trong Firestore
+        const todoRef = doc(db, "users", user.uid, "todos", editingTodoId);
+        await updateDoc(todoRef, {
+          task: newTodo, // Cập nhật nội dung
+        });
+        setEditingTodoId(null); // Reset trạng thái sửa
+        setNewTodo(""); // Xóa input sau khi sửa thành công
+        fetchTodos(user.uid); // Lấy lại danh sách To-Do đã cập nhật
+      }
+    } catch (error) {
+      alert("Error editing todo: " + error.message);
     }
   };
 
@@ -107,7 +142,12 @@ export default function HomeScreen({ navigation }) {
           <Task
             text={item.task}
             completed={item.completed}
-            onPress={() => handleToggleComplete(item.id, item.completed)} 
+            onPress={() => handleToggleComplete(item.id, item.completed)}
+            onDelete={() => handleDeleteTodo(item.id)} // Pass delete handler
+            onEdit={() => {
+              setEditingTodoId(item.id); // Set id for editing
+              setNewTodo(item.task); // Fill input with current task
+            }}
           />
         )}
       />
@@ -118,13 +158,13 @@ export default function HomeScreen({ navigation }) {
       >
         <TextInput
           style={styles.input}
-          placeholder={"Write a task"}
+          placeholder={editingTodoId ? "Edit your task" : "Write a task"}
           value={newTodo}
           onChangeText={setNewTodo}
         />
-        <TouchableOpacity onPress={handleAddTodo}>
+        <TouchableOpacity onPress={editingTodoId ? handleEditTodo : handleAddTodo}>
           <View style={styles.addWrapper}>
-            <Text style={styles.addText}>+</Text>
+            <Text style={styles.addText}>{editingTodoId ? "Save" : "+"}</Text>
           </View>
         </TouchableOpacity>
       </KeyboardAvoidingView>
